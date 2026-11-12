@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Z-BrD - Universal Remote</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial;background:#070b14;color:#fff;padding:0 0 30px}
+header{text-align:center;padding:22px 12px 8px;background:linear-gradient(180deg,#101a33,#070b14)} .logo{font-size:44px;font-weight:900;letter-spacing:2px}.logo span{color:#3b82f6}.sub{font-size:12px;opacity:.75;margin-top:4px}
+.card{background:#111a2e;margin:12px;border-radius:18px;padding:14px;border:1px solid #223}
+.tv{background:#000;border-radius:14px;padding:14px;text-align:center;min-height:108px;border:2px solid #2b3a5e}.tv b{font-size:26px}.tv small{opacity:.7}
+.row{display:flex;gap:8px;flex-wrap:wrap}.pill{flex:1;background:#1c2947;border:1px solid #2b3a5e;color:#fff;padding:10px;border-radius:999px;cursor:pointer}.pill.on{background:#2563eb}
+.btn{background:#1e2a47;border:1px solid #2b3a5e;color:#fff;border-radius:12px;padding:11px 6px;cursor:pointer;font-size:13px;text-align:center}.btn:active{transform:scale(.96);background:#2563eb}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:center}
+.dpad{width:170px;height:170px;border-radius:50%;background:#0b1224;border:2px solid #2b3a5e;margin:auto;position:relative}.dpad button{position:absolute;background:#1e2a47;color:#fff;border:1px solid #3a4a70;border-radius:10px;padding:8px 12px;cursor:pointer}.up{top:8px;left:50%;transform:translateX(-50%)}.down{bottom:8px;left:50%;transform:translateX(-50%)}.left{left:8px;top:50%;transform:translateY(-50%)}.right{right:8px;top:50%;transform:translateY(-50%)}.ok{top:50%;left:50%;transform:translate(-50%,-50%);background:#2563eb!important;width:62px;height:62px;border-radius:50%!important;font-weight:800}
+.arrow{flex:1;background:#2563eb;color:#fff;border:none;padding:13px;border-radius:14px;font-size:18px;font-weight:800;cursor:pointer}
+input,select{width:100%;padding:11px;border-radius:12px;border:1px solid #2b3a5e;background:#0b1224;color:#fff;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;color:#111;padding:10px 16px;border-radius:999px;font-weight:700;display:none;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.4);white-space:nowrap}
+h3{margin:0 0 10px;font-size:16px}.foot{text-align:center;opacity:.6;font-size:12px;margin-top:16px}
+</style></head>
+<body>
+<header><div class="logo">Z-<span>BrD</span></div><div class="sub">Application créée par le groupe Z-BrD DeV</div></header>
+
+<div class="card"><div class="tv"><small id="status">📺 Non connecté — Choisis ta TV</small><br><b id="screen">Z-BrD TV</b><br><small id="detail">Chaîne 1 • Volume 20 • HDMI 1</small></div></div>
+
+<div class="card"><h3>🔌 Connexion</h3>
+<div class="row"><button class="pill on" onclick="setMode(this,'WiFi')">WiFi</button><button class="pill" onclick="setMode(this,'4G')">4G</button><button class="pill" onclick="setMode(this,'5G')">5G</button><button class="pill" onclick="setMode(this,'Bluetooth')">Bluetooth</button></div>
+<select id="brand"><option>Samsung</option><option>LG</option><option>Sony</option><option>TCL</option><option>Hisense</option><option>Xiaomi</option><option>Philips</option><option>Ancienne TV / Autre TV</option></select>
+<input id="ip" placeholder="Nom TV ou IP (ex: 192.168.1.10)">
+<button class="btn" style="width:100%;margin-top:10px;background:#2563eb" onclick="connect()">Connecter à la TV</button></div>
+
+<div class="card"><h3>⏮️ Précédent / Suivant ⏭️</h3><div class="row"><button class="arrow" onclick="act('◀ Précédent','Chaîne précédente')">◀ Précédent</button><button class="arrow" onclick="act('Suivant ▶','Chaîne suivante')">Suivant ▶</button></div></div>
+
+<div class="card"><h3>🕹️ Navigation</h3><div class="dpad">
+<button class="up" onclick="act('Haut','Navigation Haut')">▲</button><button class="down" onclick="act('Bas','Navigation Bas')">▼</button><button class="left" onclick="act('Gauche','Navigation Gauche')">◀</button><button class="right" onclick="act('Droite','Navigation Droite')">▶</button><button class="ok" onclick="act('OK','OK validé')">OK</button></div></div>
+
+<div class="card"><h3>🔊 Volume & Chaînes</h3><div class="grid3">
+<button class="btn" onclick="vol(1)">Vol +</button><button class="btn" onclick="act('Mute','Son coupé')">🔇 Mute</button><button class="btn" onclick="vol(-1)">Vol -</button>
+<button class="btn" onclick="ch(1)">CH +</button><button class="btn" onclick="act('Home','Accueil')">🏠 Home</button><button class="btn" onclick="ch(-1)">CH -</button></div>
+<div style="margin-top:10px">Volume: <input type="range" id="volRange" min="0" max="100" value="20" oninput="setVol(this.value)"></div></div>
+
+<div class="card"><h3>🔢 Chiffres</h3><div class="grid">
+<button class="btn" onclick="num(1)">1</button><button class="btn" onclick="num(2)">2</button><button class="btn" onclick="num(3)">3</button><button class="btn" onclick="num(4)">4</button><button class="btn" onclick="num(5)">5</button><button class="btn" onclick="num(6)">6</button><button class="btn" onclick="num(7)">7</button><button class="btn" onclick="num(8)">8</button><button class="btn" onclick="num(9)">9</button><button class="btn" onclick="act('Back','Retour')">↩ Back</button><button class="btn" onclick="num(0)">0</button><button class="btn" onclick="act('Exit','Quitter')">Exit</button></div></div>
+
+<div class="card"><h3>⚙️ Commandes</h3><div class="grid">
+<button class="btn" onclick="power()">⏻ Power</button><button class="btn" onclick="act('Menu','Menu ouvert')">Menu</button><button class="btn" onclick="act('Guide','Guide TV')">Guide</button><button class="btn" onclick="act('Info','Infos')">Info</button><button class="btn" onclick="act('Source','Source / HDMI')">Source</button><button class="btn" onclick="act('Settings','Réglages')">Settings</button><button class="btn" onclick="act('Lecture','Lecture')">▶ Play</button><button class="btn" onclick="act('Pause','Pause')">⏸ Pause</button><button class="btn" onclick="act('Stop','Stop')">⏹ Stop</button><button class="btn" onclick="act('Recul','Retour rapide')">⏪</button><button class="btn" onclick="act('Avance','Avance rapide')">⏩</button><button class="btn" onclick="act('Enregistrer','Enregistrement')">● Rec</button></div></div>
+
+<div class="card"><h3>🎬 Applications</h3><div class="grid">
+<button class="btn" style="background:#e50914" onclick="act('Netflix','Netflix ouvert')">Netflix</button><button class="btn" style="background:#ff0000" onclick="act('YouTube','YouTube ouvert')">YouTube</button><button class="btn" style="background:#00a8e1" onclick="act('Prime Video','Prime Video ouvert')">Prime</button><button class="btn" style="background:#113ccf" onclick="act('Disney+','Disney+ ouvert')">Disney+</button></div></div>
+
+<div class="card"><h3>🎨 Couleurs & Divers</h3><div class="grid">
+<button class="btn" style="background:#ef4444" onclick="act('Rouge','Bouton Rouge')">🔴</button><button class="btn" style="background:#22c55e" onclick="act('Vert','Bouton Vert')">🟢</button><button class="btn" style="background:#eab308;color:#000" onclick="act('Jaune','Bouton Jaune')">🟡</button><button class="btn" style="background:#3b82f6" onclick="act('Bleu','Bouton Bleu')">🔵</button><button class="btn" onclick="act('Sous-titres','Sous-titres')">Sous-titres</button><button class="btn" onclick="act('Audio','Langue Audio')">Audio</button><button class="btn" onclick="act('Image','Réglage Image')">Image</button><button class="btn" onclick="act('Minuteur','Minuteur')">⏰ Sleep</button></div></div>
+
+<div class="foot">Z-BrD DeV • Version 1.0 • Universal Remote</div>
+<div id="toast"></div>
+<script>
+let volume=20, channel=1, on=true, mode='WiFi';
+function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1600)}
+function update(){document.getElementById('detail').textContent=on?('Chaîne '+channel+' • Volume '+volume+' • '+mode):'TV éteinte';document.getElementById('screen').textContent=on?'Z-BrD TV':'TV OFF'}
+function act(name,show){document.getElementById('screen').textContent=show;toast('Commande envoyée: '+name)}
+function setMode(b,m){document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));b.classList.add('on');mode=m;update();toast('Mode: '+m)}
+function connect(){let br=document.getElementById('brand').value;document.getElementById('status').textContent='✅ Connecté à '+br+' • '+mode;document.getElementById('screen').textContent='Connecté à '+br;toast('Connecté à '+br)}
+function vol(d){volume=Math.max(0,Math.min(100,volume+d));document.getElementById('volRange').value=volume;update();toast('Volume: '+volume)}
+function setVol(v){volume=parseInt(v);update()}
+function ch(d){channel=Math.max(1,channel+d);update();toast('Chaîne: '+channel)}
+function num(n){channel=n;update();toast('Chaîne: '+n)}
+function power(){on=!on;update();toast(on?'TV Allumée':'TV Éteinte')}
+update();
+</script></body></html>
